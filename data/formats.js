@@ -34,52 +34,25 @@ exports.BattleFormats = {
 		challengeDefault: true,
 		rated: true,
 		challengeShow: true,
-		//searchShow: true,
-		isTeambuilderFormat: true,
-		ruleset: ['Pokemon', 'Standard', 'Evasion Abilities Clause', 'Team Preview'],
-		banlist: ['Uber', 'Drizzle ++ Swift Swim', 'Soul Dew']
-	},
-	oucurrent: {
-		name: "OU (current)",
-		section: "Singles",
-
-		effectType: 'Format',
-		challengeDefault: true,
-		rated: true,
-		challengeShow: true,
 		searchShow: true,
 		isTeambuilderFormat: true,
 		ruleset: ['Pokemon', 'Standard', 'Evasion Abilities Clause', 'Team Preview'],
 		banlist: ['Uber', 'Drizzle ++ Swift Swim', 'Soul Dew']
 	},
-	oususpecttest: {
-		name: "OU (suspect test)",
-		section: "Singles",
-
-		effectType: 'Format',
-		challengeDefault: true,
-		rated: true,
-		challengeShow: true,
-		searchShow: true,
-		isTeambuilderFormat: true,
-		ruleset: ['Pokemon', 'Standard', 'Evasion Abilities Clause', 'Team Preview'],
-		banlist: ['Uber', 'Drizzle ++ Swift Swim', 'Soul Dew', 'Landorus']
-	},
-	// ounostealthrock: {
-	// 	name: "OU (no Stealth Rock)",
-	// 	section: "Singles",
-
-	// 	effectType: 'Format',
-	// 	challengeDefault: true,
-	// 	rated: true,
-	// 	challengeShow: true,
-	// 	searchShow: true,
-	// 	isTeambuilderFormat: true,
-	// 	ruleset: ['Pokemon', 'Standard', 'Evasion Abilities Clause', 'Team Preview'],
-	// 	banlist: ['Uber', 'Drizzle ++ Swift Swim', 'Soul Dew', 'Stealth Rock']
-	// },
 	ubers: {
 		name: "Ubers",
+		section: "Singles",
+
+		effectType: 'Format',
+		rated: true,
+		challengeShow: true,
+		//searchShow: true,
+		isTeambuilderFormat: true,
+		ruleset: ['Pokemon', 'Team Preview', 'Sleep Clause Mod', 'Standard Ubers'],
+		banlist: []
+	},
+	uberssuspecttest: {
+		name: "Ubers (suspect test)",
 		section: "Singles",
 
 		effectType: 'Format',
@@ -311,7 +284,7 @@ exports.BattleFormats = {
 			this.p2.pokemon = this.p2.pokemon.slice(0,1);
 			this.p2.pokemonLeft = this.p2.pokemon.length;
 		},
-		ruleset: ['Pokemon', 'Standard'],
+		ruleset: ['HP Percentage Mod', 'Pokemon', 'OHKO Clause', 'Evasion Moves Clause', 'Moody Clause'],
 		banlist: ['Unreleased', 'Illegal', 'Soul Dew',
 			'Arceus', 'Arceus-Bug', 'Arceus-Dark', 'Arceus-Dragon', 'Arceus-Electric', 'Arceus-Fighting', 'Arceus-Fire', 'Arceus-Flying', 'Arceus-Ghost', 'Arceus-Grass', 'Arceus-Ground', 'Arceus-Ice', 'Arceus', 'Arceus-Poison', 'Arceus-Psychic', 'Arceus-Rock', 'Arceus-Steel', 'Arceus-Water',
 			'Darkrai', 
@@ -342,7 +315,7 @@ exports.BattleFormats = {
 		rated: true,
 		challengeShow: true,
 		searchShow: true,
-		ruleset: ['HP Percentage Mod', 'Sleep Clause Mod'],
+		ruleset: ['HP Percentage Mod', 'Sleep Clause'],
 		onBegin: function() {
 			this.add('-message', "Greetings, trainer! Delibird needs your help! It's lost in the US and it needs to find its way back to the arctic before summer starts! Help your Delibird while travelling north, but you must defeat the opponent before he reaches there first!");
 			this.setWeather('Sunny Day');
@@ -399,7 +372,7 @@ exports.BattleFormats = {
 				} else {
 					winner = 'p1';
 				}
-				this.add('-message', "No!! You let Delibird down. He trusted you. You lost the battle, " + name + ". But you lost something else: your Pokémon's trust.");
+				this.add('-message', "No!! You let Delibird down. He trusted you. You lost the battle, " + name + ". But you lost something else: your PokÈmon's trust.");
 				pokemon.battle.win(winner);
 			}
 		}
@@ -544,7 +517,189 @@ exports.BattleFormats = {
 		ruleset: ['NU'],
 		banlist: ["Charizard", "Wartortle", "Kadabra", "Golem", "Haunter", "Exeggutor", "Weezing", "Kangaskhan", "Pinsir", "Lapras", "Ampharos", "Misdreavus", "Piloswine", "Miltank", "Ludicolo", "Swellow", "Gardevoir", "Ninjask", "Torkoal", "Cacturne", "Altaria", "Armaldo", "Gorebyss", "Regirock", "Regice", "Bastiodon", "Floatzel", "Drifblim", "Skuntank", "Lickilicky", "Probopass", "Rotom-Fan", "Samurott", "Musharna", "Gurdurr", "Sawk", "Carracosta", "Garbodor", "Sawsbuck", "Alomomola", "Golurk", "Braviary", "Articuno", "Electabuzz", "Electrode", "Marowak", "Liepard", "Tangela", "Eelektross", "Ditto", "Seismitoad", "Zangoose", "Roselia", "Zebstrika", "Serperior", "Metang", "Tauros", "Torterra", "Cradily", "Primeape", "Munchlax", "Scolipede", "Jynx"]
 	},
+	snaqshift: {
+		name: "Snaq Shift",
+		section: 'Other Metagames',
 
+		mod: 'snaqshift',
+		effectType: 'Format',
+		rated: true,
+		challengeShow: true,
+		searchShow: true,
+		isTeambuilderFormat: true,
+		ruleset: ['Pokemon', 'Standard', 'Evasion Abilities Clause', 'Team Preview'],
+		banlist: []
+	},
+        sketchmons: {
+                name: "Sketchmons",
+                section: "Other Metagames",
+                mod: 'sketchmons',
+                effectType: 'Format',
+                challengeShow: true,
+                searchShow: true,
+                ruleset: ['Pokemon', 'Standard', 'Evasion Abilities Clause', 'Team Preview'],
+                banlist: ['Uber', 'Drizzle ++ Swift Swim', 'Soul Dew']
+        },
+        sketchmonubers: {
+                name: "Sketchmon Ubers",
+                section: "Singles",
+                mod: 'sketchmons',
+                effectType: 'Format',
+                challengeShow: true,
+                searchShow: false,
+                ruleset: ['Pokemon', 'Team Preview', 'Standard Ubers'],
+                banlist: []
+	},
+////////////////Tervari Tiers
+///////////////////////////////////////////////////////////////////////////////////////////
+	tervariou: {
+		name: "Tervari OU",
+		section: "Tervari Tiers",
+		mod: 'tervariou',
+		effectType: 'Format',
+		challengeDefault: true,
+		rated: true,
+		challengeShow: true,
+		searchShow: true,
+		isTeambuilderFormat: true,
+		ruleset: ['Pokemon', 'Standard', 'Evasion Abilities Clause', 'Team Preview'],
+		banlist: ['Uber', 'Drizzle ++ Swift Swim', 'Soul Dew']	
+	},
+	tervariubers: {
+		name: "Tervari Ubers",
+		section: "Tervari Tiers",
+		mod: 'tervariou',
+		effectType: 'Format',
+		rated: true,
+		challengeShow: true,
+		searchShow: true,
+		isTeambuilderFormat: true,
+		ruleset: ['Pokemon', 'Team Preview', 'Sleep Clause Mod', 'Standard Ubers'],
+		banlist: []
+	},
+	tervarimu: {
+		name: "Tervari MU",
+		section: "Tervari Tiers",
+		mod: 'tervariou',
+		effectType: 'Format',
+		rated: true,
+		challengeShow: true,
+		searchShow: true,
+		isTeambuilderFormat: true,
+		ruleset: ['OU'],
+		banlist: ['OU', 'BL', 'Drought', 'Sand Stream']
+	},
+	tervariuu: {
+		name: "Tervari UU",
+		section: "Tervari Tiers",
+		mod: 'tervariou',
+		effectType: 'Format',
+		rated: true,
+		challengeShow: true,
+		searchShow: true,
+		isTeambuilderFormat: true,
+		ruleset: ['OU'],
+		banlist: ['OU', 'BL', 'Drought', 'Sand Stream']
+	},	
+	tervariru: {
+		name: "Tervari RU",
+		section: "Tervari Tiers",
+		mod: 'tervariou',
+		effectType: 'Format',
+		rated: true,
+		challengeShow: true,
+		searchShow: true,
+		isTeambuilderFormat: true,
+		ruleset: ['UU'],
+		banlist: ['UU', 'BL2', 'Shell Smash + Baton Pass']
+	},
+	tervarinu: {
+		name: "Tervari NU",
+		section: "Tervari Tiers",
+		mod: 'tervariou',
+		effectType: 'Format',
+		rated: true,
+		challengeShow: true,
+		searchShow: true,
+		isTeambuilderFormat: true,
+		ruleset: ['RU'],
+		banlist: ['RU','BL3']
+	},
+	tervarilc: {
+		name: "Tervari LC",
+		section: "Tervari Tiers",
+		mod: 'tervariou',
+		effectType: 'Format',
+		maxLevel: 5,
+		rated: true,
+		challengeShow: true,
+		searchShow: true,
+		isTeambuilderFormat: true,
+		ruleset: ['Pokemon', 'Standard', 'Team Preview', 'Little Cup'],
+		banlist: ['Sonicboom', 'Dragon Rage', 'Berry Juice', 'Carvanha', 'Meditite', 'Gligar', 'Scyther', 'Sneasel', 'Tangela', 'Vulpix', 'Yanma', 'Soul Dew']
+	},
+	tervaripu: {
+		name: "Tervari PU",
+		section: "Tervari Tiers",
+		mod: 'tervariou',
+		effectType: 'Format',
+		rated: true,
+		challengeShow: true,
+		isTeambuilderFormat: true,
+		ruleset: ['NU'],
+		banlist: ["Charizard", "Wartortle", "Kadabra", "Golem", "Haunter", "Exeggutor", "Weezing", "Kangaskhan", "Pinsir", "Lapras", "Ampharos", "Misdreavus", "Piloswine", "Miltank", "Ludicolo", "Swellow", "Gardevoir", "Ninjask", "Torkoal", "Cacturne", "Altaria", "Armaldo", "Gorebyss", "Regirock", "Regice", "Bastiodon", "Floatzel", "Drifblim", "Skuntank", "Lickilicky", "Probopass", "Rotom-Fan", "Samurott", "Musharna", "Gurdurr", "Sawk", "Carracosta", "Garbodor", "Sawsbuck", "Alomomola", "Golurk", "Braviary", "Articuno", "Electabuzz", "Electrode", "Marowak", "Liepard", "Tangela", "Eelektross", "Ditto", "Seismitoad", "Zangoose", "Roselia", "Zebstrika", "Serperior", "Metang", "Tauros", "Torterra", "Cradily", "Primeape", "Munchlax", "Scolipede", "Jynx"]
+	},
+	tervaridoubles: {
+		name: "Tervari Doubles",
+		section: 'Tervari Tiers',
+		mod: 'tervariou',
+		effectType: 'Format',
+		gameType: 'doubles',
+		challengeShow: true,
+		searchShow: true,
+		rated: true,
+		ruleset: ['Pokemon', 'Team Preview', 'Sleep Clause Mod', 'Species Clause', 'OHKO Clause', 'Moody Clause', 'Evasion Moves Clause', 'Evasion Abilities Clause', 'HP Percentage Mod'],
+		banlist: ['Unreleased', 'Illegal', 'Sky Drop', 'Dark Void', 'Soul Dew',
+			'Mewtwo',
+			'Lugia',
+			'Ho-Oh',
+			'Kyogre',
+			'Groudon',
+			'Rayquaza',
+			'Dialga',
+			'Palkia',
+			'Giratina', 'Giratina-Origin',
+			'Arceus', 'Arceus-Bug', 'Arceus-Dark', 'Arceus-Dragon', 'Arceus-Electric', 'Arceus-Fighting', 'Arceus-Fire', 'Arceus-Flying', 'Arceus-Ghost', 'Arceus-Grass', 'Arceus-Ground', 'Arceus-Ice', 'Arceus', 'Arceus-Poison', 'Arceus-Psychic', 'Arceus-Rock', 'Arceus-Steel', 'Arceus-Water',
+			'Reshiram',
+			'Zekrom',
+			'Kyurem-White'
+		]
+	},
+	tervariuberdoubles: {
+		name: "Tervari Uber Doubles",
+		section: 'Tervari Tiers',
+		mod: 'tervariou',
+		effectType: 'Format',
+		gameType: 'doubles',
+		challengeShow: true,
+		searchShow: true,
+		rated: true,
+		ruleset: ['Pokemon', 'Team Preview', 'Sleep Clause Mod', 'Species Clause', 'OHKO Clause', 'Moody Clause', 'Evasion Moves Clause', 'Evasion Abilities Clause', 'HP Percentage Mod'],
+		banlist: ['Unreleased', 'Illegal', 'Sky Drop']
+	},
+tervarirandombattle: {
+		name: "Tervari Random Battle",
+		section: "Tervari Tiers",
+		mod: 'tervariou',
+		effectType: 'Format',
+		team: 'random',
+		canUseRandomTeam: true,
+		searchDefault: true,
+		rated: true,
+		challengeShow: true,
+		searchShow: true,
+		ruleset: ['PotD', 'Pokemon', 'Sleep Clause Mod', 'HP Percentage Mod']
+	},
 	// Past Generations
 	///////////////////////////////////////////////////////////////////
 
@@ -645,7 +800,22 @@ exports.BattleFormats = {
 	standardnext: {
 		effectType: 'Banlist',
 		ruleset: ['Sleep Clause Mod', 'Species Clause', 'OHKO Clause', 'HP Percentage Mod'],
-		banlist: ['Unreleased', 'Illegal', 'Double Team']
+		banlist: ['Unreleased', 'Illegal', 'Double Team'],
+		validateSet: function(set) {
+			// limit one of each move in Standard
+			var moves = [];
+			if (set.moves) {
+				var hasMove = {};
+				for (var i=0; i<set.moves.length; i++) {
+					var move = this.getMove(set.moves[i]);
+					var moveid = move.id;
+					if (hasMove[moveid]) continue;
+					hasMove[moveid] = true;
+					moves.push(set.moves[i]);
+				}
+			}
+			set.moves = moves;
+		}
 	},
 
 	// Rulesets
@@ -654,17 +824,62 @@ exports.BattleFormats = {
 	standard: {
 		effectType: 'Banlist',
 		ruleset: ['Sleep Clause Mod', 'Species Clause', 'OHKO Clause', 'Moody Clause', 'Evasion Moves Clause', 'HP Percentage Mod'],
-		banlist: ['Unreleased', 'Illegal']
+		banlist: ['Unreleased', 'Illegal'],
+		validateSet: function(set) {
+			// limit one of each move in Standard
+			var moves = [];
+			if (set.moves) {
+				var hasMove = {};
+				for (var i=0; i<set.moves.length; i++) {
+					var move = this.getMove(set.moves[i]);
+					var moveid = move.id;
+					if (hasMove[moveid]) continue;
+					hasMove[moveid] = true;
+					moves.push(set.moves[i]);
+				}
+			}
+			set.moves = moves;
+		}
 	},
 	standardubers: {
 		effectType: 'Banlist',
-		ruleset: ['Sleep Clause Mod', 'Species Clause', 'Moody Clause', 'OHKO Clause', 'HP Percentage Mod'],
-		banlist: ['Unreleased', 'Illegal']
+		ruleset: ['Species Clause', 'Moody Clause', 'OHKO Clause', 'HP Percentage Mod'],
+		banlist: ['Unreleased', 'Illegal'],
+		validateSet: function(set) {
+			// limit one of each move in Standard
+			var moves = [];
+			if (set.moves) {
+				var hasMove = {};
+				for (var i=0; i<set.moves.length; i++) {
+					var move = this.getMove(set.moves[i]);
+					var moveid = move.id;
+					if (hasMove[moveid]) continue;
+					hasMove[moveid] = true;
+					moves.push(set.moves[i]);
+				}
+			}
+			set.moves = moves;
+		}
 	},
 	standarddw: {
 		effectType: 'Banlist',
 		ruleset: ['Sleep Clause Mod', 'Species Clause', 'OHKO Clause', 'Evasion Moves Clause', 'HP Percentage Mod'],
-		banlist: ['Illegal', 'Moody']
+		banlist: ['Illegal', 'Moody'],
+		validateSet: function(set) {
+			// limit one of each move in Standard
+			var moves = [];
+			if (set.moves) {
+				var hasMove = {};
+				for (var i=0; i<set.moves.length; i++) {
+					var move = this.getMove(set.moves[i]);
+					var moveid = move.id;
+					if (hasMove[moveid]) continue;
+					hasMove[moveid] = true;
+					moves.push(set.moves[i]);
+				}
+			}
+			set.moves = moves;
+		}
 	},
 	pokemon: {
 		effectType: 'Banlist',
@@ -713,20 +928,6 @@ exports.BattleFormats = {
 			if (!format.banlistTable || !format.banlistTable['illegal']) return problems;
 			// everything after this line only happens if we're doing legality enforcement
 
-			// limit one of each move
-			var moves = [];
-			if (set.moves) {
-				var hasMove = {};
-				for (var i=0; i<set.moves.length; i++) {
-					var move = this.getMove(set.moves[i]);
-					var moveid = move.id;
-					if (hasMove[moveid]) continue;
-					hasMove[moveid] = true;
-					moves.push(set.moves[i]);
-				}
-			}
-			set.moves = moves;
-
 			if (template.num == 351) { // Castform
 				set.species = 'Castform';
 			}
@@ -768,20 +969,6 @@ exports.BattleFormats = {
 		validateSet: function(set, format) {
 			// don't return
 			this.getEffect('Pokemon').validateSet.call(this, set, format);
-			
-			// limit one of each move
-			var moves = [];
-			if (set.moves) {
-				var hasMove = {};
-				for (var i=0; i<set.moves.length; i++) {
-					var move = this.getMove(set.moves[i]);
-					var moveid = move.id;
-					if (hasMove[moveid]) continue;
-					hasMove[moveid] = true;
-					moves.push(set.moves[i]);
-				}
-			}
-			set.moves = moves;
 		}
 	},
 	legal: {
