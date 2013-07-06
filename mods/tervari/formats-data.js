@@ -39,4 +39,4 @@ exports.BattleFormatsData = {
                 dreamWorldRelease: true,
                 tier: "UU"
         }
-};//this is for testing iirc
+};
