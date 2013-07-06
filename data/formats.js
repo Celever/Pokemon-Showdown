@@ -555,7 +555,7 @@ exports.BattleFormats = {
 	tervariou: {
 		name: "Tervari OU",
 		section: "Tervari Tiers",
-		mod: 'tervariou',
+		mod: 'tervari',
 		effectType: 'Format',
 		challengeDefault: true,
 		rated: true,
@@ -568,7 +568,7 @@ exports.BattleFormats = {
 	tervariubers: {
 		name: "Tervari Ubers",
 		section: "Tervari Tiers",
-		mod: 'tervariou',
+		mod: 'tervari',
 		effectType: 'Format',
 		rated: true,
 		challengeShow: true,
@@ -592,7 +592,7 @@ exports.BattleFormats = {
 	tervariuu: {
 		name: "Tervari UU",
 		section: "Tervari Tiers",
-		mod: 'tervariou',
+		mod: 'tervari',
 		effectType: 'Format',
 		rated: true,
 		challengeShow: true,
@@ -604,7 +604,7 @@ exports.BattleFormats = {
 	tervariru: {
 		name: "Tervari RU",
 		section: "Tervari Tiers",
-		mod: 'tervariou',
+		mod: 'tervari',
 		effectType: 'Format',
 		rated: true,
 		challengeShow: true,
@@ -616,7 +616,7 @@ exports.BattleFormats = {
 	tervarinu: {
 		name: "Tervari NU",
 		section: "Tervari Tiers",
-		mod: 'tervariou',
+		mod: 'tervari',
 		effectType: 'Format',
 		rated: true,
 		challengeShow: true,
@@ -628,7 +628,7 @@ exports.BattleFormats = {
 	tervarilc: {
 		name: "Tervari LC",
 		section: "Tervari Tiers",
-		mod: 'tervariou',
+		mod: 'tervari',
 		effectType: 'Format',
 		maxLevel: 5,
 		rated: true,
@@ -641,7 +641,7 @@ exports.BattleFormats = {
 	tervaripu: {
 		name: "Tervari PU",
 		section: "Tervari Tiers",
-		mod: 'tervariou',
+		mod: 'tervari',
 		effectType: 'Format',
 		rated: true,
 		challengeShow: true,
@@ -652,7 +652,7 @@ exports.BattleFormats = {
 	tervaridoubles: {
 		name: "Tervari Doubles",
 		section: 'Tervari Tiers',
-		mod: 'tervariou',
+		mod: 'tervari',
 		effectType: 'Format',
 		gameType: 'doubles',
 		challengeShow: true,
@@ -678,7 +678,7 @@ exports.BattleFormats = {
 	tervariuberdoubles: {
 		name: "Tervari Uber Doubles",
 		section: 'Tervari Tiers',
-		mod: 'tervariou',
+		mod: 'tervari',
 		effectType: 'Format',
 		gameType: 'doubles',
 		challengeShow: true,
@@ -690,7 +690,7 @@ exports.BattleFormats = {
 tervarirandombattle: {
 		name: "Tervari Random Battle",
 		section: "Tervari Tiers",
-		mod: 'tervariou',
+		mod: 'tervari',
 		effectType: 'Format',
 		team: 'random',
 		canUseRandomTeam: true,
