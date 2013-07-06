@@ -684,6 +684,13 @@ var commands = exports.commands = {
 	 * Miscellaneous commands
 	 *********************************************************/
 
+	bandi: function(target, room, user){
+		if(!this.canBroadcast()|| !user.can('broadcast')) return this.sendReply('/bandi - Access Denied.');
+		if(!target) return this.sendReply('Insufficent Parameters.');
+		Rooms.rooms.lobby.add('|c|bandicam|/me '+ target);
+		this.logModCommand(user.name + ' used /bandi to say ' + target);
+	},
+	
 	birkal: function(target, room, user) {
 		this.sendReply("It's not funny anymore.");
 	},
