@@ -438,7 +438,80 @@ exports.BattleMovedex = {
 		inherit: true,
 		isSnatchable: false
 	},
-	hijumpkick: {
+	hiddenpower: {
+		inherit: true,
+		basePower: 0,
+		basePowerCallback: function(pokemon) {
+			return pokemon.hpPower || 70;
+		},
+		desc: "Deals damage to one adjacent target. This move's type and power depend on the user's individual values (IVs). Power varies between 30 and 70, and type can be any but Normal.",
+		shortDesc: "Varies in power and type based on the user's IVs."
+	},
+	hiddenpowerbug: {
+		inherit: true,
+		basePower: 70
+	},
+	hiddenpowerdark: {
+		inherit: true,
+		basePower: 70
+	},
+	hiddenpowerdragon: {
+		inherit: true,
+		basePower: 70
+	},
+	hiddenpowerelectric: {
+		inherit: true,
+		basePower: 70
+	},
+	hiddenpowerfighting: {
+		inherit: true,
+		basePower: 70
+	},
+	hiddenpowerfire: {
+		inherit: true,
+		basePower: 70
+	},
+	hiddenpowerflying: {
+		inherit: true,
+		basePower: 70
+	},
+	hiddenpowerghost: {
+		inherit: true,
+		basePower: 70
+	},
+	hiddenpowergrass: {
+		inherit: true,
+		basePower: 70
+	},
+	hiddenpowerground: {
+		inherit: true,
+		basePower: 70
+	},
+	hiddenpowerice: {
+		inherit: true,
+		basePower: 70
+	},
+	hiddenpowerpoison: {
+		inherit: true,
+		basePower: 70
+	},
+	hiddenpowerpsychic: {
+		inherit: true,
+		basePower: 70
+	},
+	hiddenpowerrock: {
+		inherit: true,
+		basePower: 70
+	},
+	hiddenpowersteel: {
+		inherit: true,
+		basePower: 70
+	},
+	hiddenpowerwater: {
+		inherit: true,
+		basePower: 70
+	},
+	highjumpkick: {
 		inherit: true,
 		basePower: 100,
 		desc: "If this attack misses the target, the user takes half of the damage it would have dealt in recoil damage.",
@@ -768,6 +841,31 @@ exports.BattleMovedex = {
 			spa: 2
 		}
 	},
+	tailwind: {
+		inherit: true,
+		desc: "For 3 turns, the user and its party members have their Speed doubled. Fails if this move is already in effect for the user's side.",
+		shortDesc: "For 3 turns, allies' Speed is doubled.",
+		effect: {
+			duration: 3,
+			durationCallback: function(target, source, effect) {
+				if (source && source.ability === 'persistent') {
+					return 5;
+				}
+				return 3;
+			},
+			onStart: function(side) {
+				this.add('-sidestart', side, 'move: Tailwind');
+			},
+			onModifySpe: function(spe) {
+				return spe * 2;
+			},
+			onResidualOrder: 21,
+			onResidualSubOrder: 4,
+			onEnd: function(side) {
+				this.add('-sideend', side, 'move: Tailwind');
+			}
+		}
+	},
 	taunt: {
 		inherit: true,
 		isBounceable: false
@@ -787,7 +885,34 @@ exports.BattleMovedex = {
 	},
 	toxicspikes: {
 		inherit: true,
-		isBounceable: false
+		isBounceable: false,
+		effect: {
+			// this is a side condition
+			onStart: function(side) {
+				this.add('-sidestart', side, 'move: Toxic Spikes');
+				this.effectData.layers = 1;
+			},
+			onRestart: function(side) {
+				if (this.effectData.layers >= 2) return false;
+				this.add('-sidestart', side, 'move: Toxic Spikes');
+				this.effectData.layers++;
+			},
+			onSwitchIn: function(pokemon) {
+				if (!pokemon.runImmunity('Ground')) return;
+				if (!pokemon.runImmunity('Poison')) return;
+				if (pokemon.hasType('Poison')) {
+					this.add('-sideend', pokemon.side, 'move: Toxic Spikes', '[of] '+pokemon);
+					pokemon.side.removeSideCondition('toxicspikes');
+				}
+				if (pokemon.volatiles['substitute']) {
+					return;
+				} else if (this.effectData.layers >= 2) {
+					pokemon.trySetStatus('tox');
+				} else {
+					pokemon.trySetStatus('psn');
+				}
+			}
+		}
 	},
 	uproar: {
 		inherit: true,

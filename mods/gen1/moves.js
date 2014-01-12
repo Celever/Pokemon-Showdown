@@ -264,7 +264,7 @@ exports.BattleMovedex = {
 		affectedByImmunities: false,
 		willCrit: false,
 		damageCallback: function(pokemon) {
-			if (pokemon.lastAttackedBy && pokemon.lastAttackedBy.thisTurn 
+			if (pokemon.lastAttackedBy && pokemon.lastAttackedBy.thisTurn
 			&& ((this.getMove(pokemon.lastAttackedBy.move).type === 'Normal' || this.getMove(pokemon.lastAttackedBy.move).type === 'Fighting'))
 			&& this.getMove(pokemon.lastAttackedBy.move).id !== 'seismictoss') {
 				return 2 * pokemon.lastAttackedBy.damage;
@@ -536,7 +536,7 @@ exports.BattleMovedex = {
 			volatileStatus: 'flinch'
 		}
 	},
-	hijumpkick: {
+	highjumpkick: {
 		inherit: true,
 		basePower: 85,
 		desc: "If this attack misses the target, the user takes 1 HP of damage.",
@@ -1050,7 +1050,7 @@ exports.BattleMovedex = {
 			onTryHit: function(target, source, move) {
 				if (move.category === 'Status') {
 					// In gen 1 it only blocks:
-					// poison, confusion, the effect of partial trapping moves, secondary effect confusion, 
+					// poison, confusion, the effect of partial trapping moves, secondary effect confusion,
 					// stat reducing moves and Leech Seed.
 					var SubBlocked = {
 						lockon:1, meanlook:1, mindreader:1, nightmare:1

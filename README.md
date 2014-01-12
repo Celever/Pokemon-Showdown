@@ -1,19 +1,21 @@
 Pokémon Showdown
 ========================================================================
 
-Pokémon Showdown is a simulator of Pokémon battles. It currently supports singles battles in Generations 4-5 (HGSS, BW, BW2).
+Pokémon Showdown is a simulator of Pokémon battles. It currently supports singles battles in all the games out so far (Generations 1 through 6).
 
 This repository contains the files needed to set up your own Pokémon Showdown server. Note that to set up a server, you'll also need a server computer.
 
-You can use your own computer as a server, but for other people to connect to your computer, you'll need to expose a port (default is 8000 but you can choose a different one) to connect to, by setting up any firewalls you might have to allow that port through to you (this sometimes isn't possible on certain internet connections).
+You can use your own computer as a server, but for other people to connect to your computer, you'll need to expose a port (default is 8000 but you can choose a different one) to connect to, which sometimes requires [port forwarding][1] (note that this isn't possible on certain internet connections).
+
+  [1]: http://en.wikipedia.org/wiki/Port_forwarding
 
 
 Installing
 ------------------------------------------------------------------------
 
-Pokémon Showdown requires [node.js][1], either v0.6.3 through v0.8.22, or v0.10.2 and up. Install `node.js` if you don't have it yet; the latest stable version is a good choice to install.
+Pokémon Showdown requires [node.js][2], v0.10.2 and up. Install `node.js` if you don't have it yet; the latest stable version is a good choice to install.
 
-Next, obtain a copy of Pokémon Showdown. If you're reading this outside of GitHub, you've probably already done this. If you're reading this in GitHub, there's a "Clone" button in the top left, or if you're really lazy, there's a "ZIP" download button. I recommend the Clone method - it's more time-consuming to set up, but much easier to update.
+Next, obtain a copy of Pokémon Showdown. If you're reading this outside of GitHub, you've probably already done this. If you're reading this in GitHub, there's a "Clone" button in the bottom of the right sidebar, or if you're really lazy, there's a "ZIP" download button. I recommend the Clone method - it's more time-consuming to set up, but much easier to update.
 
 Pokémon Showdown is installed and run using a command line. In Mac OS X, open `Terminal` (it's in Utilities). In Windows, open `Command Prompt` (type `cmd` into the Start menu and it should be the first result). Type this into the command line:
 
@@ -49,8 +51,7 @@ You will be redirected to `http://SERVER.psim.us`. The reason your server is vis
 
 If you truly want to host the client yourself, there is [a repository for the Pokémon Showdown Client][3]. It's not recommended for beginners, though.
 
-  [1]: http://nodejs.org/
-  [2]: https://github.com/joyent/node/pull/5016
+  [2]: http://nodejs.org/
   [3]: https://github.com/Zarel/Pokemon-Showdown-Client
 
 
@@ -65,7 +66,7 @@ To become an Administrator, create a file named `config/usergroups.csv` containi
 
     USER,~
 
-Replace `USER` with the username that you would like to become an Administrator.
+Replace `USER` with the username that you would like to become an Administrator. Do not put a space between the comma and the tilde.
 
 This username must be registered. If you do not have a registered account, you can create one using the Register button in the settings menu (it looks like a gear) in the upper-right of Pokémon Showdown.
 
@@ -115,20 +116,23 @@ Owner
 
 - Guangcong Luo [Zarel] - Development, Design
 
-Senior Staff
-
-- Cathy J. Fitzpatrick [cathyjf] - Development
-
 Staff
 
 - Bill Meltsner [bmelts] - Development
+- Juanma Serrano [Joim] - Development
+
+Retired Staff
+
+- Cathy J. Fitzpatrick [cathyjf] - Development
 - Mathieu Dias-Martins [Marty-D] - Research (game mechanics), Development
 
 Contributors
 
 - Andrew Goodsell [Zracknel] - Art (battle weather backdrops)
 - Cody Thompson [Rising_Dusk] - Development
-- Juanma Serrano [Joim] - Development
+- Hugh Gordon [V4] - Research (game mechanics), Development
 - Kyle Dove [Kyle_Dove] - Art (battle backdrops)
+- Robin Vandenbrande [Quinella] - Development
 - Samuel Teo [Yilx] - Art (main background)
 - [The Immortal] - Development
+- Vivian Zou [Vtas] - Art (alternate main background)

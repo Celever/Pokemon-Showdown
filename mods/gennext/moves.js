@@ -16,7 +16,7 @@ exports.BattleMovedex = {
 		inherit: true,
 		basePower: 90
 	},
-	faintattack: {
+	feintattack: {
 		inherit: true,
 		basePower: 90
 	},
@@ -110,6 +110,8 @@ exports.BattleMovedex = {
 	- makes all moves hit against it
 	Minimize:
 	- only +1 evasion
+	Double Team:
+	- -25% maxhp when used
 
 	Justification:
 	- Sub/Protect stalling is annoying
@@ -127,13 +129,16 @@ exports.BattleMovedex = {
 			onAccuracy: function(accuracy, target, source, move) {
 				return 100;
 			},
-			onTryHitPriority: 2,
-			onTryHit: function(target, source, move) {
+			onTryPrimaryHitPriority: 2,
+			onTryPrimaryHit: function(target, source, move) {
 				if (target === source) {
 					this.debug('sub bypass: self hit');
 					return;
 				}
 				if (move.category === 'Status') {
+					if (move.notSubBlocked) {
+						return;
+					}
 					var SubBlocked = {
 						block:1, embargo:1, entrainment:1, gastroacid:1, healblock:1, healpulse:1, leechseed:1, lockon:1, meanlook:1, mindreader:1, nightmare:1, painsplit:1, psychoshift:1, simplebeam:1, skydrop:1, soak: 1, spiderweb:1, switcheroo:1, trick:1, worryseed:1, yawn:1
 					};
@@ -157,21 +162,69 @@ exports.BattleMovedex = {
 				source.lastDamage = damage;
 				if (target.volatiles['substitute'].hp <= 0) {
 					target.removeVolatile('substitute');
-					this.runEvent('AfterSubDamage', target, source, move, damage);
-					return 0; // hit
 				} else {
 					this.add('-activate', target, 'Substitute', '[damage]');
-					this.runEvent('AfterSubDamage', target, source, move, damage);
-					return 0; // hit
 				}
+				if (move.recoil) {
+					this.damage(Math.round(damage * move.recoil[0] / move.recoil[1]), source, target, 'recoil');
+				}
+				if (move.drain) {
+					this.heal(Math.ceil(damage * move.drain[0] / move.drain[1]), source, target, 'drain');
+				}
+				this.runEvent('AfterSubDamage', target, source, move, damage);
+				return 0; // hit
 			},
 			onEnd: function(target) {
 				this.add('-end', target, 'Substitute');
 			}
 		}
 	},
+	"protect": {
+		inherit: true,
+		effect: {
+			duration: 1,
+			onStart: function(target) {
+				this.add('-singleturn', target, 'Protect');
+			},
+			onTryHitPriority: 3,
+			onTryHit: function(target, source, move) {
+				if (target.volatiles.substitute) return;
+				if (move.breaksProtect) {
+					target.removeVolatile('Protect');
+					return;
+				}
+				if (move && (move.target === 'self' || move.isNotProtectable)) return;
+				this.add('-activate', target, 'Protect');
+				var lockedmove = source.getVolatile('lockedmove');
+				if (lockedmove) {
+					// Outrage counter is reset
+					if (source.volatiles['lockedmove'].duration === 2) {
+						delete source.volatiles['lockedmove'];
+					}
+				}
+				return null;
+			}
+		}
+	},
 	minimize: {
 		inherit: true,
+		boosts: {
+			evasion: 1
+		}
+	},
+	doubleteam: {
+		inherit: true,
+		onTryHit: function(target) {
+			if (target.boosts.evasion >= 6) {
+				return false;
+			}
+			if (target.hp <= target.maxhp/4 || target.maxhp === 1) { // Shedinja clause
+				return false;
+			}
+		},
+		onHit: function(target) {
+			this.directDamage(target.maxhp/4);
+		},
 		boosts: {
 			evasion: 1
 		}
@@ -186,6 +239,9 @@ exports.BattleMovedex = {
 	solarbeam: {
 		inherit: true,
 		basePower: 60,
+		basePowerCallback: function(pokemon, target) {
+			return 60;
+		},
 		willCrit: true,
 		accuracy: true,
 		onTryHitPriority: 10,
@@ -435,23 +491,48 @@ exports.BattleMovedex = {
 			}
 		}
 	},
+	rockwrecker: {
+		inherit: true,
+		accuracy: true,
+		basePower: 75,
+		willCrit: true,
+		self: null,
+		onHit: function(target, source) {
+			if (!target.hp) {
+				source.addVolatile('mustrecharge');
+			}
+		}
+	},
+	roaroftime: {
+		inherit: true,
+		accuracy: true,
+		basePower: 75,
+		willCrit: true,
+		self: null,
+		onHit: function(target, source) {
+			if (!target.hp) {
+				source.addVolatile('mustrecharge');
+			}
+		}
+	},
 	bide: {
 		inherit: true,
 		effect: {
 			duration: 2,
 			onLockMove: 'bide',
 			onStart: function(pokemon) {
-				if (pokemon.hp <= 1 || pokemon.lastMove === 'bide') return false;
+				if (pokemon.removeVolatile('bidestall') || pokemon.hp <= 1) return false;
+				pokemon.addVolatile('bidestall');
 				this.effectData.totalDamage = 0;
 				this.add('-start', pokemon, 'Bide');
 			},
 			onDamagePriority: -11,
-			onDamage: function(damage, target, source, move) {
+			onDamage: function(damage, target, source, effect) {
+				if (!effect || effect.effectType !== 'Move') return;
+				if (!source || source.side === target.side) return;
 				if (effect && effect.effectType === 'Move' && damage >= target.hp) {
 					damage = target.hp-1;
 				}
-				if (!move || move.effectType !== 'Move') return;
-				if (!source || source.side === target.side) return;
 				this.effectData.totalDamage += damage;
 				this.effectData.sourcePosition = source.position;
 				this.effectData.sourceSide = source.side;
@@ -460,6 +541,7 @@ exports.BattleMovedex = {
 			onAfterSetStatus: function(status, pokemon) {
 				if (status.id === 'slp') {
 					pokemon.removeVolatile('bide');
+					pokemon.removeVolatile('bidestall');
 				}
 			},
 			onBeforeMove: function(pokemon) {
@@ -621,7 +703,7 @@ exports.BattleMovedex = {
 			accuracy: 1
 		},
 		onModifyMove: function(move, user) {
-			var GossamerWingUsers = {"Butterfree":1, "Masquerain":1, "Beautifly":1, "Mothim":1};
+			var GossamerWingUsers = {"Butterfree":1, "Masquerain":1, "Beautifly":1, "Mothim":1, "Lilligant":1};
 			if (user.item === 'stick' && GossamerWingUsers[user.template.species]) {
 				move.boosts = {
 					spa: 1,
@@ -786,6 +868,10 @@ exports.BattleMovedex = {
 	- You're going to attack that many times and they're all going to
 	  miss?
 	******************************************************************/
+	doublehit: {
+		inherit: true,
+		accuracy: true
+	},
 	armthrust: {
 		inherit: true,
 		accuracy: true
@@ -962,7 +1048,7 @@ exports.BattleMovedex = {
 	/******************************************************************
 	Scald:
 	- base power not affected by weather
-	- 0% burn in rain, 60% burn in sun
+	- 60% burn in sun
 
 	Justification:
 	- rain could use a nerf
@@ -974,11 +1060,19 @@ exports.BattleMovedex = {
 			case 'sunnyday':
 				move.secondary.chance = 60;
 				break;
-			case 'raindance':
-				delete move.secondary;
-				break;
 			}
 		}
+	},
+	/******************************************************************
+	High Jump Kick:
+	- 100 bp
+
+	Justification:
+	- Blaziken nerf
+	******************************************************************/
+	highjumpkick: {
+		inherit: true,
+		basePower: 100
 	},
 	/******************************************************************
 	Echoed Voice:
@@ -991,6 +1085,9 @@ exports.BattleMovedex = {
 		inherit: true,
 		accuracy: 100,
 		basePower: 80,
+		basePowerCallback: function() {
+			return 80;
+		},
 		category: "Special",
 		isViable: true,
 		priority: 0,
@@ -1503,11 +1600,6 @@ exports.BattleMovedex = {
 		inherit: true,
 		basePower: 100,
 		accuracy: 100
-	},
-	doublehit: {
-		inherit: true,
-		basePower: 40,
-		accuracy: true
 	},
 	autotomize: {
 		inherit: true,

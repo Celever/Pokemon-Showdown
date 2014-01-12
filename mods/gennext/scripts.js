@@ -1,4 +1,6 @@
 exports.BattleScripts = {
+	inherit: 'gen5',
+	gen: 5,
 	init: function() {
 		this.modData('Pokedex', 'cherrimsunshine').types = ['Grass', 'Fire'];
 
@@ -40,13 +42,24 @@ exports.BattleScripts = {
 		this.modData('Learnsets', 'rotomheat').learnset.heatwave = ['5L100'];
 		this.modData('Learnsets', 'rotommow').learnset.magicalleaf = ['5L100'];
 
-		// Zororark: much wider movepool
+		// Zoroark: much wider movepool
 		this.modData('Learnsets', 'zoroark').learnset.earthquake = ['5M'];
 		this.modData('Learnsets', 'zoroark').learnset.stoneedge = ['5M'];
 		this.modData('Learnsets', 'zoroark').learnset.icebeam = ['5M'];
 		this.modData('Learnsets', 'zoroark').learnset.xscissor = ['5M'];
 		this.modData('Learnsets', 'zoroark').learnset.gigadrain = ['5T'];
 		this.modData('Learnsets', 'zoroark').learnset.superpower = ['5T'];
+
+		// Mantine: lots of moves
+		this.modData('Learnsets', 'mantine').learnset.recover = ['5L100'];
+		this.modData('Learnsets', 'mantine').learnset.whirlwind = ['5L100'];
+		this.modData('Learnsets', 'mantine').learnset.batonpass = ['5L100'];
+		this.modData('Learnsets', 'mantine').learnset.wish = ['5L100'];
+		this.modData('Learnsets', 'mantine').learnset.soak = ['5L100'];
+		this.modData('Learnsets', 'mantine').learnset.lockon = ['5L100'];
+		this.modData('Learnsets', 'mantine').learnset.acidspray = ['5L100'];
+		this.modData('Learnsets', 'mantine').learnset.octazooka = ['5L100'];
+		this.modData('Learnsets', 'mantine').learnset.stockpile = ['5L100'];
 
 		// Aipom: eggSketch! :D
 		this.modData('Learnsets', 'aipom').learnset.sketch = ['5E'];
@@ -87,6 +100,17 @@ exports.BattleScripts = {
 		this.modData('Pokedex', 'emboar').abilities['1'] = 'Sheer Force';
 		// Samurott
 		this.modData('Pokedex', 'samurott').abilities['1'] = 'Technician';
+
+		// Levitate mons
+		this.modData('Pokedex', 'unown').abilities['1'] = 'Adaptability';
+		this.modData('Pokedex', 'flygon').abilities['1'] = 'Compoundeyes';
+		this.modData('Pokedex', 'flygon').abilities['H'] = 'Sand Rush';
+		this.modData('Pokedex', 'weezing').abilities['1'] = 'Aftermath';
+		this.modData('Pokedex', 'eelektross').abilities['1'] = 'Poison Heal';
+		this.modData('Pokedex', 'claydol').abilities['1'] = 'Filter';
+		this.modData('Pokedex', 'gengar').abilities['1'] = 'Cursed Body';
+		this.modData('Pokedex', 'mismagius').abilities['1'] = 'Cursed Body';
+		this.modData('Pokedex', 'cryogonal').abilities['1'] = 'Ice Body';
 
 		// Every DW ability that isn't Shadow Tag becomes released
 		for (var i in this.data.FormatsData) {

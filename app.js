@@ -12,7 +12,7 @@
  * Users - from users.js
  *
  *   Most of the communication with users happens in users.js, we just
- *   forward messages between the client and users.js.
+ *   forward messages between the sockets.js and users.js.
  *
  * Rooms - from rooms.js
  *
@@ -31,6 +31,11 @@
  * CommandParser - from command-parser.js
  *
  *   Parses text commands like /me
+ *
+ * Sockets - from sockets.js
+ *
+ *   Used to abstract out network connections. sockets.js handles
+ *   the actual server and connection set-up.
  *
  * @license MIT license
  */
@@ -113,101 +118,155 @@ if (process.argv[2] && parseInt(process.argv[2])) {
 	config.port = parseInt(process.argv[2]);
 }
 
-/*********************************************************
- * Start our servers
- *********************************************************/
-
-// Static HTTP server
-
-// This handles the custom CSS and custom avatar features, and also
-// redirects yourserver:8001 to yourserver-8001.psim.us
-
-// It's optional if you don't need these features.
-
-var app = require('http').createServer();
-var appssl;
-if (config.ssl) {
-	appssl = require('https').createServer(config.ssl.options);
-}
-try {
-	(function() {
-		var nodestatic = require('node-static');
-		var cssserver = new nodestatic.Server('./config');
-		var avatarserver = new nodestatic.Server('./config/avatars');
-		var staticserver = new nodestatic.Server('./static');
-		var staticRequestHandler = function(request, response) {
-			request.resume();
-			request.addListener('end', function() {
-				if (config.customhttpresponse &&
-						config.customhttpresponse(request, response)) {
-					return;
-				}
-				var server;
-				if (request.url === '/custom.css') {
-					server = cssserver;
-				} else if (request.url.substr(0, 9) === '/avatars/') {
-					request.url = request.url.substr(8);
-					server = avatarserver;
-				} else {
-					if (/^\/([A-Za-z0-9][A-Za-z0-9-]*)\/?$/.test(request.url)) {
-						request.url = '/';
-					}
-					server = staticserver;
-				}
-				server.serve(request, response, function(e, res) {
-					if (e && (e.status === 404)) {
-						staticserver.serveFile('404.html', 404, {}, request, response);
-					}
-				});
-			});
-		};
-		app.on('request', staticRequestHandler);
-		if (appssl) {
-			appssl.on('request', staticRequestHandler);
-		}
-	})();
-} catch (e) {
-	console.log('Could not start node-static - try `npm install` if you want to use it');
-}
-
-// SockJS server
-
-// This is the main server that handles users connecting to our server
-// and doing things on our server.
-
-var sockjs = require('sockjs');
-
-// Warning: Terrible hack here. The version of faye-websocket that we use has
-//          a bug where sometimes the _cursor of a StreamReader ends up being
-//          NaN, which leads to an infinite loop. The newest version of
-//          faye-websocket has *other* bugs, so this really is the least
-//          terrible option to deal with this critical issue.
-(function() {
-	var StreamReader = require('./node_modules/sockjs/node_modules/' +
-			'faye-websocket/lib/faye/websocket/hybi_parser/stream_reader.js');
-	var _read = StreamReader.prototype.read;
-	StreamReader.prototype.read = function() {
-		if (isNaN(this._cursor)) {
-			// This will break out of the otherwise-infinite loop.
-			return null;
-		}
-		return _read.apply(this, arguments);
-	};
-})();
-
-var server = sockjs.createServer({
-	sockjs_url: "//play.pokemonshowdown.com/js/lib/sockjs-0.3.min.js",
-	log: function(severity, message) {
-		if (severity === 'error') console.log('ERROR: '+message);
+global.ResourceMonitor = {
+	connections: {},
+	connectionTimes: {},
+	battles: {},
+	battleTimes: {},
+	battlePreps: {},
+	battlePrepTimes: {},
+	networkUse: {},
+	networkCount: {},
+	cmds: {},
+	cmdsTimes: {},
+	cmdsTotal: {lastCleanup: Date.now(), count: 0},
+	/**
+	 * Counts a connection. Returns true if the connection should be terminated for abuse.
+	 */
+	log: function(text) {
+		console.log(text);
+		if (Rooms.rooms.staff) Rooms.rooms.staff.add('||'+text);
 	},
-	prefix: '/showdown',
-	websocket: !config.disablewebsocket
-});
+	countConnection: function(ip, name) {
+		var now = Date.now();
+		var duration = now - this.connectionTimes[ip];
+		name = (name ? ': '+name : '');
+		if (ip in this.connections && duration < 30*60*1000) {
+			this.connections[ip]++;
+			if (duration < 5*60*1000 && this.connections[ip] % 20 === 0) {
+				this.log('[ResourceMonitor] IP '+ip+' has connected '+this.connections[ip]+' times in the last '+duration.duration()+name);
+			} else if (this.connections[ip] % 60 == 0) {
+				this.log('[ResourceMonitor] IP '+ip+' has connected '+this.connections[ip]+' times in the last '+duration.duration()+name);
+			}
+		} else {
+			this.connections[ip] = 1;
+			this.connectionTimes[ip] = now;
+		}
+	},
+	/**
+	 * Counts a battle. Returns true if the connection should be terminated for abuse.
+	 */
+	countBattle: function(ip, name) {
+		var now = Date.now();
+		var duration = now - this.battleTimes[ip];
+		name = (name ? ': '+name : '');
+		if (ip in this.battles && duration < 30*60*1000) {
+			this.battles[ip]++;
+			if (duration < 5*60*1000 && this.battles[ip] % 15 == 0) {
+				this.log('[ResourceMonitor] IP '+ip+' has battled '+this.battles[ip]+' times in the last '+duration.duration()+name);
+			} else if (this.battles[ip] % 75 == 0) {
+				this.log('[ResourceMonitor] IP '+ip+' has battled '+this.battles[ip]+' times in the last '+duration.duration()+name);
+			}
+		} else {
+			this.battles[ip] = 1;
+			this.battleTimes[ip] = now;
+		}
+	},
+	/**
+	 * Counts battle prep. Returns true if too much
+	 */
+	countPrepBattle: function(ip) {
+		var now = Date.now();
+		var duration = now - this.battlePrepTimes[ip];
+		if (ip in this.battlePreps && duration < 3*60*1000) {
+			this.battlePreps[ip]++;
+			if (this.battlePreps[ip] > 6) {
+				return true;
+			}
+		} else {
+			this.battlePreps[ip] = 1;
+			this.battlePrepTimes[ip] = now;
+		}
+	},
+	/**
+	 * data
+	 */
+	countNetworkUse: function(size) {
+		if (this.activeIp in this.networkUse) {
+			this.networkUse[this.activeIp] += size;
+			this.networkCount[this.activeIp]++;
+		} else {
+			this.networkUse[this.activeIp] = size;
+			this.networkCount[this.activeIp] = 1;
+		}
+	},
+	writeNetworkUse: function() {
+		var buf = '';
+		for (var i in this.networkUse) {
+			buf += ''+this.networkUse[i]+'\t'+this.networkCount[i]+'\t'+i+'\n';
+		}
+		fs.writeFile('logs/networkuse.tsv', buf);
+	},
+	clearNetworkUse: function() {
+		this.networkUse = {};
+		this.networkCount = {};
+	},
+	/**
+	 * Counts roughly the size of an object to have an idea of the server load.
+	 */
+	sizeOfObject: function(object) {
+		var objectList = [];
+		var stack = [object];
+		var bytes = 0;
 
-// Make `app`, `appssl`, and `server` available to the console.
-global.App = app;
-global.AppSSL = appssl;
-global.Server = server;
+		while (stack.length) {
+			var value = stack.pop();
+			if (typeof value === 'boolean') bytes += 4;
+			else if (typeof value === 'string') bytes += value.length * 2;
+			else if (typeof value === 'number') bytes += 8;
+			else if (typeof value === 'object' && objectList.indexOf( value ) === -1) {
+				objectList.push( value );
+				for (i in value) stack.push( value[ i ] );
+			}
+		}
+
+		return bytes;
+	},
+	/**
+	 * Controls the amount of times a cmd command is used
+	 */
+	countCmd: function(ip, name) {
+	 	var now = Date.now();
+		var duration = now - this.cmdsTimes[ip];
+		name = (name ? ': '+name : '');
+		if (!this.cmdsTotal) this.cmdsTotal = {lastCleanup: 0, count: 0};
+		if (now - this.cmdsTotal.lastCleanup > 60*1000) {
+			this.cmdsTotal.count = 0;
+			this.cmdsTotal.lastCleanup = now;
+		}
+		this.cmdsTotal.count++;
+		if (ip in this.cmds && duration < 60*1000) {
+			this.cmds[ip]++;
+			if (duration < 60*1000 && this.cmds[ip] % 5 === 0) {
+				if (this.cmds[ip] >= 3) {
+					if (this.cmds[ip] % 30 === 0) this.log('CMD command from '+ip+' blocked for '+this.cmds[ip]+'th use in the last '+duration.duration()+name);
+					return true;
+				}
+				this.log('[ResourceMonitor] IP '+ip+' has used CMD command '+this.cmds[ip]+' times in the last '+duration.duration()+name);
+			} else if (this.cmds[ip] % 15 === 0) {
+				this.log('CMD command from '+ip+' blocked for '+this.cmds[ip]+'th use in the last '+duration.duration()+name);
+				return true;
+			}
+		} else if (this.cmdsTotal.count > 8000) {
+			// One CMD check per user per minute on average (to-do: make this better)
+			this.log('CMD command for '+ip+' blocked because CMD has been used '+this.cmdsTotal.count+' times in the last minute.');
+			return true;
+		} else {
+			this.cmds[ip] = 1;
+			this.cmdsTimes[ip] = now;
+		}
+	}
+};
 
 /*********************************************************
  * Set up most of our globals
@@ -285,7 +344,7 @@ global.clampIntRange = function(num, min, max) {
 	if (typeof num !== 'number') num = 0;
 	num = Math.floor(num);
 	if (num < min) num = min;
-	if (typeof max !== 'undefined' && num > max) num = max;
+	if (max !== undefined && num > max) num = max;
 	return num;
 };
 
@@ -295,8 +354,6 @@ watchFile('./config/custom.css', function(curr, prev) {
 	LoginServer.request('invalidatecss', {}, function() {});
 });
 LoginServer.request('invalidatecss', {}, function() {});
-
-global.Data = {};
 
 global.Users = require('./users.js');
 
@@ -309,176 +366,38 @@ global.CommandParser = require('./command-parser.js');
 
 global.Simulator = require('./simulator.js');
 
-global.lockdown = false;
+try {
+	global.Dnsbl = require('./dnsbl.js');
+} catch (e) {
+	global.Dnsbl = {query:function(){}};
+}
 
-global.sendData = function(socket, data) {
-	socket.write(data);
-};
+global.Cidr = require('./cidr.js');
 
 if (config.crashguard) {
 	// graceful crash - allow current battles to finish before restarting
-	process.on('uncaughtException', (function() {
-		var lastCrash = 0;
-		return function(err) {
-			var dateNow = Date.now();
-			var quietCrash = require('./crashlogger.js')(err, 'The main process');
-			quietCrash = quietCrash || ((dateNow - lastCrash) <= 1000 * 60 * 5)
-			lastCrash = Date.now();
-			if (quietCrash) return;
-			var stack = (""+err.stack).split("\n").slice(0,2).join("<br />");
+	var lastCrash = 0;
+	process.on('uncaughtException', function(err) {
+		var dateNow = Date.now();
+		var quietCrash = require('./crashlogger.js')(err, 'The main process');
+		quietCrash = quietCrash || ((dateNow - lastCrash) <= 1000 * 60 * 5)
+		lastCrash = Date.now();
+		if (quietCrash) return;
+		var stack = (""+err.stack).split("\n").slice(0,2).join("<br />");
+		if (Rooms.lobby) {
 			Rooms.lobby.addRaw('<div class="broadcast-red"><b>THE SERVER HAS CRASHED:</b> '+stack+'<br />Please restart the server.</div>');
 			Rooms.lobby.addRaw('<div class="broadcast-red">You will not be able to talk in the lobby or start new battles until the server restarts.</div>');
-			config.modchat = 'crash';
-			lockdown = true;
-		};
-	})());
+		}
+		config.modchat = 'crash';
+		Rooms.global.lockdown = true;
+	});
 }
 
 /*********************************************************
- * Set up the server to be connected to
+ * Start networking processes to be connected to
  *********************************************************/
 
-// this is global so it can be hotpatched if necessary
-global.isTrustedProxyIp = (function() {
-	if (!config.proxyip) {
-		return function() {
-			return false;
-		};
-	}
-	var iplib = require('ip');
-	var patterns = [];
-	for (var i = 0; i < config.proxyip.length; ++i) {
-		var range = config.proxyip[i];
-		var parts = range.split('/');
-		var subnet = iplib.toLong(parts[0]);
-		var bits = (parts.length < 2) ? 32 : parseInt(parts[1], 10);
-		var mask = -1 << (32 - bits);
-		patterns.push([subnet & mask, mask]);
-	}
-	return function(ip) {
-		var longip = iplib.toLong(ip);
-		for (var i = 0; i < patterns.length; ++i) {
-			var p = patterns[i];
-			if ((longip & p[1]) === p[0]) {
-				return true;
-			}
-		}
-		return false;
-	};
-})();
-
-var socketCounter = 0;
-server.on('connection', function(socket) {
-	if (!socket) {
-		// For reasons that are not entirely clear, SockJS sometimes triggers
-		// this event with a null `socket` argument.
-		return;
-	} else if (!socket.remoteAddress) {
-		// This condition occurs several times per day. It may be a SockJS bug.
-		try {
-			socket.end();
-		} catch (e) {}
-		return;
-	}
-	socket.id = (++socketCounter);
-
-	if (isTrustedProxyIp(socket.remoteAddress)) {
-		var ips = (socket.headers['x-forwarded-for'] || '').split(',');
-		var ip;
-		while (ip = ips.pop()) {
-			ip = ip.trim();
-			if (!isTrustedProxyIp(ip)) {
-				socket.remoteAddress = ip;
-				break;
-			}
-		}
-	}
-
-	if (Users.checkBanned(socket.remoteAddress)) {
-		console.log('CONNECT BLOCKED - IP BANNED: '+socket.remoteAddress);
-		socket.end();
-		return;
-	}
-	console.log('CONNECT: '+socket.remoteAddress+' ['+socket.id+']');
-	var interval;
-	if (config.herokuhack) {
-		// see https://github.com/sockjs/sockjs-node/issues/57#issuecomment-5242187
-		interval = setInterval(function() {
-			try {
-				socket._session.recv.didClose();
-			} catch (e) {}
-		}, 15000);
-	}
-
-	var connection;
-
-	socket.on('data', function(message) {
-		// Due to a bug in SockJS or Faye, if an exception propagates out of
-		// the `data` event handler, the user will be disconnected on the next
-		// `data` event. To prevent this, we log exceptions and prevent them
-		// from propagating out of this function.
-		try {
-			// drop legacy JSON messages
-			if (message.substr(0,1) === '{') return;
-
-			// drop invalid messages without a pipe character
-			var pipeIndex = message.indexOf('|');
-			if (pipeIndex < 0) return;
-
-			var roomid = message.substr(0, pipeIndex);
-			var lines = message.substr(pipeIndex + 1);
-			var room = Rooms.get(roomid, 'lobby');
-			var user = connection.user;
-			if (lines.substr(0,3) === '>> ' || lines.substr(0,4) === '>>> ') {
-				user.chat(lines, room, connection);
-				return;
-			}
-			lines.split('\n').forEach(function(text) {
-				user.chat(text, room, connection);
-			});
-		} catch (e) {
-			var stack = e.stack + '\n\n';
-			stack += 'Additional information:\n';
-			stack += 'user = ' + user + '\n';
-			stack += 'ip = ' + socket.remoteAddress + '\n';
-			stack += 'roomid = ' + roomid + '\n';
-			stack += 'message = ' + message;
-			var err = {stack: stack};
-			if (config.crashguard) {
-				try {
-					connection.sendTo(roomid||'lobby', '|html|<div class="broadcast-red"><b>Something crashed!</b><br />Don\'t worry, we\'re working on fixing it.</div>');
-				} catch (e) {} // don't crash again...
-				process.emit('uncaughtException', err);
-			} else {
-				throw err;
-			}
-		}
-	});
-
-	socket.on('close', function() {
-		if (interval) {
-			clearInterval(interval);
-		}
-		var user = connection.user;
-		if (!user) return;
-		user.onDisconnect(socket);
-	});
-
-	connection = Users.connectUser(socket);
-});
-server.installHandlers(app, {});
-app.listen(config.port);
-if (appssl) {
-	server.installHandlers(appssl, {});
-	appssl.listen(config.ssl.port);
-}
-
-console.log('Server started on port ' + config.port);
-if (appssl) {
-	console.log('SSL server started on port ' + config.ssl.port);
-}
-
-console.log('Test your server at http://localhost:' + config.port);
+global.Sockets = require('./sockets.js');
 
 /*********************************************************
  * Set up our last global
@@ -492,3 +411,23 @@ global.Tools = require('./tools.js');
 
 // After loading tools, generate and cache the format list.
 Rooms.global.formatListText = Rooms.global.getFormatListText();
+
+global.TeamValidator = require('./team-validator.js');
+
+// load ipbans at our leisure
+fs.readFile('./config/ipbans.txt', function (err, data) {
+	if (err) return;
+	data = (''+data).split("\n");
+	var rangebans = [];
+	for (var i=0; i<data.length; i++) {
+		data[i] = data[i].split('#')[0].trim();
+		if (!data[i]) continue;
+		if (data[i].indexOf('/') >= 0) {
+			rangebans.push(data[i]);
+		} else if (!Users.bannedIps[data[i]]) {
+			Users.bannedIps[data[i]] = '#ipban';
+		}
+	}
+	Users.checkRangeBanned = Cidr.checker(rangebans);
+});
+global.tour = require('./tour.js').tour();

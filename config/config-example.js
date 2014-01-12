@@ -1,15 +1,24 @@
 // The server port - the port to run Pokemon Showdown under
 exports.port = 8000;
 
-// The server ID - a unique ID describing this Showdown server
-exports.serverid = 'testserver';
-
 // proxyip - proxy IPs with trusted X-Forwarded-For headers
 //   This can be either false (meaning not to trust any proxies) or an array
 //   of strings. Each string should be either an IP address or a subnet given
 //   in CIDR notation. You should usually leave this as `false` unless you
 //   know what you are doing.
 exports.proxyip = false;
+
+// Pokemon of the Day - put a pokemon's name here to make it Pokemon of the Day
+//   The PotD will always be in the #2 slot (not #1 so it won't be a lead)
+//   in every Random Battle team.
+exports.potd = '';
+
+// crash guard - write errors to log file instead of crashing
+//   This is normally not recommended - if Node wants to crash, the
+//   server needs to be restarted
+//   Unfortunately, socket.io bug 409 requires some sort of crash guard
+//   https://github.com/LearnBoost/socket.io/issues/609
+exports.crashguard = true;
 
 // login server data - don't forget the http:// and the trailing slash
 //   This is the URL of the user database and ladder mentioned earlier.
@@ -30,18 +39,6 @@ exports.loginserverpublickey = "-----BEGIN RSA PUBLIC KEY-----\n" +
 	"wdlWIlTxJ2dfCnnJBFEt/wDsL54q8KmGbzOTvRq5uz/tMvs6ycgLVgA9r1xmVU+1\n" +
 	"6lMr2wdSzyG7l3X3q1XyQ/CT5IP4unFs5HKpG31skxlfXv5a7KW5AfsCAwEAAQ==\n" +
 	"-----END RSA PUBLIC KEY-----\n";
-
-// Pokemon of the Day - put a pokemon's name here to make it Pokemon of the Day
-//   The PotD will always be in the #2 slot (not #1 so it won't be a lead)
-//   in every randomly-generated team.
-exports.potd = '';
-
-// crash guard - write errors to log file instead of crashing
-//   This is normally not recommended - if Node wants to crash, the
-//   server needs to be restarted
-//   Unfortunately, socket.io bug 409 requires some sort of crash guard
-//   https://github.com/LearnBoost/socket.io/issues/609
-exports.crashguard = true;
 
 // crashguardemail - if the server has been running for more than an hour
 // and crashes, send an email using these settings, rather than locking down
@@ -71,23 +68,25 @@ exports.crashguard = true;
 //   getting more than 80 or so users.
 exports.reportjoins = true;
 
-// report battles - shows messages like "OU battle started"
+// report battles - shows messages like "OU battle started" in the lobby
 //   This feature can lag larger servers - turn this off if your server is
 //   getting more than 160 or so users.
 exports.reportbattles = true;
 
-// moderated chat - prevent unregistered, unvoiced users from speaking
-//   This should only be enabled temporarily, when you're dealing with
-//   huge influxes of spammy users.
-exports.modchat = false;
+// moderated chat - prevent unvoiced users from speaking
+//   This should only be enabled in special situations, such as temporarily
+//   when you're dealing with huge influxes of spammy users.
+exports.chatmodchat = false;
+exports.battlemodchat = false;
+exports.pmmodchat = false;
 
-// backdoor - allows Zarel and his authorised Pokemon Showdown development
-//            staff to provide tech support for your server
-//   This backdoor gives Zarel (and development staff approved by him) admin
-//   access to your server, which allows him to provide tech support. This
+// backdoor - allows Pokemon Showdown system operators to provide technical
+//            support for your server
+//   This backdoor gives system operators (such as Zarel) console admin
+//   access to your server, which allow them to provide tech support. This
 //   can be useful in a variety of situations: if an attacker attacks your
 //   server and you are not online, if you need help setting up your server,
-//   etc. It is a backdoor, though, so if you do not trust Zarel you should
+//   etc. If you do not trust Pokemon Showdown with admin access, you should
 //   disable this feature.
 exports.backdoor = true;
 
@@ -116,9 +115,11 @@ exports.logchat = false;
 // lobby log. This has no effect if `logchat` is disabled.
 exports.loguserstats = 1000*60*10; // 10 minutes
 
+// validatorprocesses - the number of processes to use for validating teams
 // simulatorprocesses - the number of processes to use for handling battles
-// You should leave this at 1 unless your server has a very large amount of
-// traffic (i.e. hundreds of concurrent battles).
+// You should leave both of these at 1 unless your server has a very large
+// amount of traffic (i.e. hundreds of concurrent battles).
+exports.validatorprocesses = 1;
 exports.simulatorprocesses = 1;
 
 // inactiveuserthreshold - how long a user must be inactive before being pruned
@@ -184,13 +185,15 @@ exports.appealurl = '';
 //     - potd: Set PotD.
 //     - forcewin: /forcewin command.
 //     - battlemessage: /a command.
-exports.groupsranking = [' ', '+', '%', '@', '&', '~'];
+exports.groupsranking = [' ', '+', '\u2605', '%', '@', '#', '&', '~'];
 exports.groups = {
 	'~': {
 		id: "admin",
 		name: "Administrator",
 		root: true,
-		rank: 5
+		globalonly: true,
+		gdeclare: true,
+		rank: 7
 	},
 	'&': {
 		id: "leader",
@@ -204,7 +207,20 @@ exports.groups = {
 		rangeban: true,
 		potd: true,
 		disableladder: true,
-		rank: 4
+		globalonly: true,
+		rank: 6
+	},
+	'#': {
+		id: "owner",
+		name: "Room Owner",
+		inherit: '@',
+		jurisdiction: 'u',
+		roommod: true,
+		roomdriver: true,
+		declare: true,
+		modchatall: true,
+		roomonly: true,
+		rank: 5
 	},
 	'@': {
 		id: "mod",
@@ -213,10 +229,11 @@ exports.groups = {
 		jurisdiction: 'u',
 		ban: true,
 		modchat: true,
+		roomvoice: true,
 		forcerename: true,
 		ip: true,
 		alts: '@u',
-		rank: 3
+		rank: 4
 	},
 	'%': {
 		id: "driver",
@@ -234,6 +251,16 @@ exports.groups = {
 		alts: '%u',
 		bypassblocks: 'u%@&~',
 		receiveauthmessages: true,
+		rank: 3
+	},
+	'\u2605': {
+		id: "player",
+		name: "Player",
+		inherit: '+',
+		roomvoice: true,
+		modchat: true,
+		roomonly: true,
+		privateroom: true,
 		rank: 2
 	},
 	'+': {
@@ -241,6 +268,7 @@ exports.groups = {
 		name: "Voice",
 		inherit: ' ',
 		broadcast: true,
+		joinbattle: true,
 		rank: 1
 	},
 	' ': {
